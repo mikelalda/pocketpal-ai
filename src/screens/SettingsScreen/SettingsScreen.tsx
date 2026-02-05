@@ -56,7 +56,10 @@ import {
   getSessionCacheInfo,
 } from '../../utils';
 import {checkGpuSupport} from '../../utils/deviceCapabilities';
-import {exportLegacyChatSessions} from '../../utils/exportUtils';
+import {
+  exportLegacyChatSessions,
+  exportRlhfData,
+} from '../../utils/exportUtils';
 import {getDeviceOptions, DeviceOption} from '../../utils/deviceSelection';
 import {
   inferBackendType,
@@ -1212,6 +1215,62 @@ export const SettingsScreen: React.FC = observer(() => {
                     }}
                     style={styles.menuButton}>
                     {l10n.settings.exportButton}
+                  </Button>
+                </View>
+              </View>
+            </Card.Content>
+          </Card>
+
+          {/* RLHF Settings */}
+          <Card elevation={0} style={styles.card}>
+            <Card.Title title={l10n.settings.rlhfSettingsTitle} />
+            <Card.Content>
+              <View style={styles.settingItemContainer}>
+                <View style={styles.switchContainer}>
+                  <View style={styles.textContainer}>
+                    <View style={styles.labelWithIconContainer}>
+                      <ShareIcon
+                        width={20}
+                        height={20}
+                        style={styles.settingIcon}
+                        stroke={theme.colors.onSurface}
+                      />
+                      <Text variant="titleMedium" style={styles.textLabel}>
+                        {l10n.settings.exportRlhfData}
+                      </Text>
+                    </View>
+                    <Text variant="labelSmall" style={styles.textDescription}>
+                      {l10n.settings.exportRlhfDataDescription}
+                    </Text>
+                  </View>
+                  <Button
+                    mode="outlined"
+                    onPress={async () => {
+                      try {
+                        const count = await exportRlhfData();
+                        if (count === 0) {
+                          Alert.alert(
+                            l10n.settings.rlhfSettingsTitle,
+                            l10n.settings.exportRlhfNoData,
+                          );
+                        } else {
+                          Alert.alert(
+                            l10n.settings.rlhfSettingsTitle,
+                            l10n.settings.exportRlhfSuccess.replace(
+                              '{{count}}',
+                              count.toString(),
+                            ),
+                          );
+                        }
+                      } catch {
+                        Alert.alert(
+                          l10n.common.error,
+                          l10n.settings.exportRlhfError,
+                        );
+                      }
+                    }}
+                    style={styles.menuButton}>
+                    {l10n.settings.exportRlhfButton}
                   </Button>
                 </View>
               </View>

@@ -440,3 +440,116 @@ const getSaveDirectory = (): string => {
     return RNFS.DownloadDirectoryPath;
   }
 };
+
+/**
+ * Export RLHF (Reinforcement Learning from Human Feedback) data
+ * Exports all conversations that have at least one rated message
+ * Format suitable for offline RLHF training
+ * @returns The number of exported rated conversations
+ */
+export const exportRlhfData = async (): Promise<number> => {
+  try {
+    // Get all sessions
+    const sessions = await chatSessionRepository.getAllSessions();
+
+    // Create an array to hold RLHF training data
+    const rlhfExportData: any[] = [];
+
+    // Process each session
+    for (const session of sessions) {
+      const sessionData = await chatSessionRepository.getSessionById(
+        session.id,
+      );
+      if (sessionData) {
+        const {session: sessionInfo, messages} = sessionData;
+
+        // Filter to get only conversations with rated messages
+        const messagesData = messages.map(msg => ({
+          id: msg.id,
+          author: msg.author,
+          text: msg.text,
+          type: msg.type,
+          metadata: msg.metadata ? JSON.parse(msg.metadata) : {},
+          createdAt: msg.createdAt,
+        }));
+
+        // Find messages with RLHF ratings
+        const ratedMessages = messagesData.filter(
+          msg => msg.metadata?.rlhfRating,
+        );
+
+        if (ratedMessages.length > 0) {
+          // Build conversation pairs (user prompt + assistant response with rating)
+          const conversationPairs: any[] = [];
+
+          for (const ratedMsg of ratedMessages) {
+            // Find the index of this message
+            const msgIndex = messagesData.findIndex(m => m.id === ratedMsg.id);
+
+            // Look for the preceding user message
+            // Messages are typically stored in chronological order, so look backwards
+            let userMessage: (typeof messagesData)[number] | null = null;
+            for (let i = msgIndex - 1; i >= 0; i--) {
+              if (messagesData[i].author === 'user') {
+                userMessage = messagesData[i];
+                break;
+              }
+            }
+
+            if (userMessage) {
+              conversationPairs.push({
+                prompt: userMessage.text,
+                response: ratedMsg.text,
+                rating: ratedMsg.metadata.rlhfRating,
+                ratedAt: ratedMsg.metadata.rlhfRatedAt,
+                messageId: ratedMsg.id,
+                sessionId: sessionInfo.id,
+              });
+            }
+          }
+
+          if (conversationPairs.length > 0) {
+            rlhfExportData.push({
+              sessionId: sessionInfo.id,
+              sessionTitle: sessionInfo.title,
+              sessionDate: sessionInfo.date,
+              activePalId: sessionInfo.activePalId,
+              conversationPairs,
+            });
+          }
+        }
+      }
+    }
+
+    if (rlhfExportData.length === 0) {
+      return 0;
+    }
+
+    // Create export metadata
+    const exportPayload = {
+      exportVersion: '1.0',
+      exportedAt: new Date().toISOString(),
+      totalSessions: rlhfExportData.length,
+      totalRatedPairs: rlhfExportData.reduce(
+        (acc, session) => acc + session.conversationPairs.length,
+        0,
+      ),
+      data: rlhfExportData,
+    };
+
+    // Create a filename with the current date
+    const timestamp = format(new Date(), 'yyyy-MM-dd_HH-mm-ss');
+    const filename = `rlhf_training_data_${timestamp}.json`;
+
+    // Convert to JSON
+    const jsonData = JSON.stringify(exportPayload, null, 2);
+
+    // Share the file
+    await shareJsonData(jsonData, filename);
+
+    return rlhfExportData.length;
+  } catch (error) {
+    console.error('Error exporting RLHF data:', error);
+    throw error;
+  }
+};

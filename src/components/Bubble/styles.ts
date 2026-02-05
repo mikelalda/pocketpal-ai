@@ -56,5 +56,19 @@ export const styles = ({
       color: theme.colors.textSecondary,
       fontSize: 16,
     },
+    ratingContainer: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      marginRight: 8,
+      marginLeft: 4,
+    },
+    ratingIcon: {
+      fontSize: 14,
+      color: theme.colors.textSecondary,
+      marginHorizontal: 4,
+    },
+    ratingIconActive: {
+      color: theme.colors.primary,
+    },
   });
 };
