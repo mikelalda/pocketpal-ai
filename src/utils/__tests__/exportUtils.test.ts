@@ -17,6 +17,7 @@ import {
   exportAllChatSessions,
   exportPal,
   exportAllPals,
+  exportRlhfData,
 } from '../exportUtils';
 import {ensureLegacyStoragePermission} from '../androidPermission';
 
@@ -529,6 +530,135 @@ describe('exportUtils', () => {
       const filename = 'test_thumbnail.jpg';
       const expected = `/mock/document/path/pal-images/test_thumbnail.jpg`;
       expect(getAbsoluteThumbnailPath(filename)).toBe(expected);
+    });
+  });
+
+  describe('exportRlhfData', () => {
+    const mockSessionWithRatedMessages = {
+      session: {
+        id: 'session-1',
+        title: 'Test Session',
+        date: '2024-01-01T00:00:00Z',
+        activePalId: 'pal-1',
+      },
+      messages: [
+        {
+          id: 'msg-1',
+          author: 'user',
+          text: 'How are you?',
+          type: 'text',
+          metadata: '{}',
+          createdAt: 1704067200000,
+        },
+        {
+          id: 'msg-2',
+          author: 'assistant',
+          text: 'I am doing well, thank you!',
+          type: 'text',
+          metadata: JSON.stringify({
+            rlhfRating: 'positive',
+            rlhfRatedAt: '2024-01-01T12:00:00Z',
+          }),
+          createdAt: 1704067201000,
+        },
+      ],
+      completionSettings: null,
+    };
+
+    const mockSessionWithoutRatings = {
+      session: {
+        id: 'session-2',
+        title: 'Session Without Ratings',
+        date: '2024-01-02T00:00:00Z',
+        activePalId: null,
+      },
+      messages: [
+        {
+          id: 'msg-3',
+          author: 'user',
+          text: 'Hello',
+          type: 'text',
+          metadata: '{}',
+          createdAt: 1704153600000,
+        },
+        {
+          id: 'msg-4',
+          author: 'assistant',
+          text: 'Hi there!',
+          type: 'text',
+          metadata: '{}',
+          createdAt: 1704153601000,
+        },
+      ],
+      completionSettings: null,
+    };
+
+    beforeEach(() => {
+      // Reset the mock repository
+      chatSessionRepository.getAllSessions = jest.fn().mockResolvedValue([
+        {id: 'session-1'},
+        {id: 'session-2'},
+      ]);
+      chatSessionRepository.getSessionById = jest
+        .fn()
+        .mockImplementation((id: string) => {
+          if (id === 'session-1') {
+            return Promise.resolve(mockSessionWithRatedMessages as any);
+          }
+          return Promise.resolve(mockSessionWithoutRatings as any);
+        });
+    });
+
+    it('should export RLHF data for sessions with rated messages', async () => {
+      const count = await exportRlhfData();
+
+      expect(count).toBe(1);
+      expect(chatSessionRepository.getAllSessions).toHaveBeenCalled();
+      expect(RNFS.writeFile).toHaveBeenCalled();
+      expect(Share.open).toHaveBeenCalled();
+
+      // Verify the exported data structure
+      const writeCall = (RNFS.writeFile as jest.Mock).mock.calls[0];
+      const exportedData = JSON.parse(writeCall[1]);
+      expect(exportedData.exportVersion).toBe('1.0');
+      expect(exportedData.totalSessions).toBe(1);
+      expect(exportedData.data[0].conversationPairs).toHaveLength(1);
+      expect(exportedData.data[0].conversationPairs[0].rating).toBe('positive');
+    });
+
+    it('should return 0 when no rated messages exist', async () => {
+      chatSessionRepository.getAllSessions = jest
+        .fn()
+        .mockResolvedValue([{id: 'session-2'}]);
+      chatSessionRepository.getSessionById = jest
+        .fn()
+        .mockResolvedValue(mockSessionWithoutRatings as any);
+
+      const count = await exportRlhfData();
+
+      expect(count).toBe(0);
+      expect(Share.open).not.toHaveBeenCalled();
+    });
+
+    it('should handle empty sessions list', async () => {
+      chatSessionRepository.getAllSessions = jest.fn().mockResolvedValue([]);
+
+      const count = await exportRlhfData();
+
+      expect(count).toBe(0);
+      expect(Share.open).not.toHaveBeenCalled();
+    });
+
+    it('should pair user prompts with rated assistant responses', async () => {
+      const count = await exportRlhfData();
+
+      const writeCall = (RNFS.writeFile as jest.Mock).mock.calls[0];
+      const exportedData = JSON.parse(writeCall[1]);
+      const pair = exportedData.data[0].conversationPairs[0];
+
+      expect(pair.prompt).toBe('How are you?');
+      expect(pair.response).toBe('I am doing well, thank you!');
+      expect(pair.rating).toBe('positive');
     });
   });
 });

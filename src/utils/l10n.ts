@@ -151,6 +151,17 @@ export const l10n = {
       importSuccess: 'Successfully imported {{count}} chat session(s).',
       importError:
         'Failed to import chat sessions. Please check the file format.',
+      // RLHF Settings
+      rlhfSettingsTitle: 'RLHF Data',
+      rlhfSettingsDescription:
+        'Export conversation ratings for reinforcement learning from human feedback (RLHF) training.',
+      exportRlhfData: 'Export RLHF Data',
+      exportRlhfDataDescription:
+        'Export rated conversations as JSON for offline RLHF training.',
+      exportRlhfButton: 'Export Ratings',
+      exportRlhfSuccess:
+        'Successfully exported {{count}} rated conversation(s).',
+      exportRlhfNoData: 'No rated conversations to export.',
       // API Settings
       apiSettingsTitle: 'API Settings',
       // Hugging Face Token
@@ -565,6 +576,8 @@ export const l10n = {
       bubble: {
         timingsString:
           '{{predictedMs}}ms/token, {{predictedPerSecond}} tokens/sec',
+        ratePositive: 'Rate response as helpful',
+        rateNegative: 'Rate response as not helpful',
       },
       exportUtils: {
         fileSaved: 'File Saved',
@@ -1499,6 +1512,16 @@ export const l10n = {
       importSuccess: '{{count}}個のチャットセッションをインポートしました',
       importError:
         'チャットセッションのインポートに失敗しました、ファイル形式を確認してください',
+      // RLHF Settings
+      rlhfSettingsTitle: 'RLHFデータ',
+      rlhfSettingsDescription:
+        '強化学習（RLHF）トレーニング用の会話評価をエクスポートします。',
+      exportRlhfData: 'RLHFデータをエクスポート',
+      exportRlhfDataDescription:
+        'オフラインRLHFトレーニング用に評価済みの会話をJSONでエクスポートします。',
+      exportRlhfButton: '評価をエクスポート',
+      exportRlhfSuccess: '{{count}}件の評価済み会話をエクスポートしました。',
+      exportRlhfNoData: 'エクスポートする評価済み会話がありません。',
       // API Settings
       apiSettingsTitle: 'API設定',
       // Hugging Face Token
@@ -1913,6 +1936,8 @@ export const l10n = {
       bubble: {
         timingsString:
           'トークンあたり{{predictedMs}}ms、1秒あたり{{predictedPerSecond}}トークン',
+        ratePositive: '応答が役に立ったと評価する',
+        rateNegative: '応答が役に立たなかったと評価する',
       },
       exportUtils: {
         fileSaved: 'ファイル保存完了',
@@ -2840,6 +2865,15 @@ export const l10n = {
       importButton: '导入',
       importSuccess: '成功导入{{count}}个聊天会话',
       importError: '导入聊天会话失败，请检查文件格式',
+      // RLHF Settings
+      rlhfSettingsTitle: 'RLHF数据',
+      rlhfSettingsDescription: '导出会话评价用于强化学习（RLHF）训练。',
+      exportRlhfData: '导出RLHF数据',
+      exportRlhfDataDescription:
+        '将已评价的对话导出为JSON格式，用于离线RLHF训练。',
+      exportRlhfButton: '导出评价',
+      exportRlhfSuccess: '成功导出{{count}}个已评价的对话。',
+      exportRlhfNoData: '没有可导出的已评价对话。',
       // API Settings
       apiSettingsTitle: 'API设置',
       // Hugging Face Token
@@ -3222,6 +3256,8 @@ export const l10n = {
       bubble: {
         timingsString:
           '每token{{predictedMs}}ms，每秒{{predictedPerSecond}}tokens',
+        ratePositive: '评价回复有帮助',
+        rateNegative: '评价回复无帮助',
       },
       exportUtils: {
         fileSaved: '文件已保存',

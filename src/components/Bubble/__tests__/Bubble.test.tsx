@@ -15,6 +15,14 @@ jest.mock('@react-native-clipboard/clipboard', () => ({
   setString: jest.fn(),
 }));
 
+// Mock the chatSessionStore
+jest.mock('../../../store', () => ({
+  chatSessionStore: {
+    activeSessionId: 'test-session-id',
+    updateMessage: jest.fn(),
+  },
+}));
+
 describe('Bubble', () => {
   let mockMessage;
 
@@ -131,5 +139,77 @@ describe('Bubble', () => {
 
     // Should not display time to first token when it's undefined
     expect(queryByText(/to first token/)).toBeNull();
+  });
+
+  describe('Rating buttons (RLHF)', () => {
+    it('renders rating buttons for AI messages with timings', () => {
+      // AI message (different author from user) - using a different author ID than 'userId'
+      const aiMessage = {
+        ...mockMessage,
+        author: {id: 'assistant'},
+      };
+      const {getByTestId} = renderBubble(aiMessage);
+
+      // Rating buttons should be visible
+      expect(getByTestId('rating-positive')).toBeTruthy();
+      expect(getByTestId('rating-negative')).toBeTruthy();
+    });
+
+    it('does not render rating buttons for user messages', () => {
+      // User message - author ID matches the context user ('userId')
+      const userMessage = {
+        ...mockMessage,
+        author: {id: 'userId'}, // This matches the default user in test-utils
+      };
+      const {queryByTestId} = renderBubble(userMessage);
+
+      // Rating buttons should not be visible for user's own messages
+      expect(queryByTestId('rating-positive')).toBeNull();
+      expect(queryByTestId('rating-negative')).toBeNull();
+    });
+
+    it('displays filled icon when rating is positive', () => {
+      const aiMessageWithRating = {
+        ...mockMessage,
+        author: {id: 'assistant'},
+        metadata: {
+          ...mockMessage.metadata,
+          rlhfRating: 'positive',
+        },
+      };
+      const {getByText} = renderBubble(aiMessageWithRating);
+
+      // Should show filled thumb-up icon
+      expect(getByText('thumb-up')).toBeTruthy();
+    });
+
+    it('displays filled icon when rating is negative', () => {
+      const aiMessageWithRating = {
+        ...mockMessage,
+        author: {id: 'assistant'},
+        metadata: {
+          ...mockMessage.metadata,
+          rlhfRating: 'negative',
+        },
+      };
+      const {getByText} = renderBubble(aiMessageWithRating);
+
+      // Should show filled thumb-down icon
+      expect(getByText('thumb-down')).toBeTruthy();
+    });
+
+    it('calls updateMessage when rating button is pressed', async () => {
+      const {chatSessionStore} = require('../../../store');
+      const aiMessage = {
+        ...mockMessage,
+        author: {id: 'assistant'},
+      };
+      const {getByTestId} = renderBubble(aiMessage);
+
+      fireEvent.press(getByTestId('rating-positive'));
+
+      // Should call updateMessage with the rating
+      expect(chatSessionStore.updateMessage).toHaveBeenCalled();
+    });
   });
 });
