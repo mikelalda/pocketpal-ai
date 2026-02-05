@@ -103,7 +103,9 @@ export const Bubble = ({
     }
   };
 
-  // Show rating buttons only for AI messages (not user messages)
+  // Show rating buttons for AI/assistant messages that have a visible footer (with timings)
+  // currentUserIsAuthor is false for assistant messages
+  // timings ensures the footer is displayed (rating buttons are part of the footer UI)
   const showRatingButtons = !currentUserIsAuthor && timings;
 
   return (

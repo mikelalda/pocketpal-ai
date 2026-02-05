@@ -595,10 +595,9 @@ describe('exportUtils', () => {
 
     beforeEach(() => {
       // Reset the mock repository
-      chatSessionRepository.getAllSessions = jest.fn().mockResolvedValue([
-        {id: 'session-1'},
-        {id: 'session-2'},
-      ]);
+      chatSessionRepository.getAllSessions = jest
+        .fn()
+        .mockResolvedValue([{id: 'session-1'}, {id: 'session-2'}]);
       chatSessionRepository.getSessionById = jest
         .fn()
         .mockImplementation((id: string) => {
@@ -650,7 +649,7 @@ describe('exportUtils', () => {
     });
 
     it('should pair user prompts with rated assistant responses', async () => {
-      const count = await exportRlhfData();
+      await exportRlhfData();
 
       const writeCall = (RNFS.writeFile as jest.Mock).mock.calls[0];
       const exportedData = JSON.parse(writeCall[1]);

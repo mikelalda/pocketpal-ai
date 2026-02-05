@@ -1265,7 +1265,7 @@ export const SettingsScreen: React.FC = observer(() => {
                       } catch {
                         Alert.alert(
                           l10n.common.error,
-                          'Failed to export RLHF data.',
+                          l10n.settings.exportRlhfError,
                         );
                       }
                     }}

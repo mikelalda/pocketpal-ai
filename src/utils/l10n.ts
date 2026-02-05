@@ -162,6 +162,7 @@ export const l10n = {
       exportRlhfSuccess:
         'Successfully exported {{count}} rated conversation(s).',
       exportRlhfNoData: 'No rated conversations to export.',
+      exportRlhfError: 'Failed to export RLHF data.',
       // API Settings
       apiSettingsTitle: 'API Settings',
       // Hugging Face Token
@@ -1522,6 +1523,7 @@ export const l10n = {
       exportRlhfButton: '評価をエクスポート',
       exportRlhfSuccess: '{{count}}件の評価済み会話をエクスポートしました。',
       exportRlhfNoData: 'エクスポートする評価済み会話がありません。',
+      exportRlhfError: 'RLHFデータのエクスポートに失敗しました。',
       // API Settings
       apiSettingsTitle: 'API設定',
       // Hugging Face Token
@@ -2874,6 +2876,7 @@ export const l10n = {
       exportRlhfButton: '导出评价',
       exportRlhfSuccess: '成功导出{{count}}个已评价的对话。',
       exportRlhfNoData: '没有可导出的已评价对话。',
+      exportRlhfError: '导出RLHF数据失败。',
       // API Settings
       apiSettingsTitle: 'API设置',
       // Hugging Face Token
